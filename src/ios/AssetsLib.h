@@ -9,6 +9,6 @@
 
 @interface AssetsLib : CDVPlugin
 
-- (void)getAllPhotos:(CDVInvokedUrlCommand*)command;
+- (void)getAllPhotoThumbnails:(CDVInvokedUrlCommand*)command;
 
 @end

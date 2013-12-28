@@ -24,7 +24,7 @@
 
 @implementation AssetsLib
 
-- (void)getAllPhotos:(CDVInvokedUrlCommand*)command
+- (void)getAllPhotoThumbnails:(CDVInvokedUrlCommand*)command
 {
     if (self.assetsLibrary == nil) {
         _assetsLibrary = [[ALAssetsLibrary alloc] init];
@@ -43,22 +43,6 @@
     
     ALAssetsGroupEnumerationResultsBlock assetsEnumerationBlock = ^(ALAsset *result, NSUInteger index, BOOL *stop) {
         if (result) {
-            /*
-             NSString *const ALAssetPropertyType;
-             NSString *const ALAssetPropertyLocation;
-             NSString *const ALAssetPropertyDuration;
-             NSString *const ALAssetPropertyOrientation;
-             NSString *const ALAssetPropertyDate;
-             NSString *const ALAssetPropertyRepresentations;
-             NSString *const ALAssetPropertyURLs;
-             NSString *const ALAssetPropertyAssetURL;
-            
-            NSLog(@"date=%@ location=%@ urls=%@ assetUrl=%@ representation=%@ orientation=%@ type=%@",[result valueForProperty:ALAssetPropertyDate],[result valueForProperty:ALAssetPropertyLocation],[result valueForProperty:ALAssetPropertyURLs],[result valueForProperty:ALAssetPropertyAssetURL],[result valueForProperty:ALAssetPropertyRepresentations],[result valueForProperty:ALAssetPropertyOrientation],[result valueForProperty:ALAssetPropertyType]);
-            CGImageRef thumbnailImageRef = [result thumbnail];
-            UIImage *thumbnail = [UIImage imageWithCGImage:thumbnailImageRef];
-            
-            NSLog(@"%@",[UIImagePNGRepresentation(thumbnail) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]);
-            */
             [self.assets addObject:result];
             if ([self.assets count] == self.assetsCount)
             {
