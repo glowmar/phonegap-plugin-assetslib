@@ -23,6 +23,7 @@
         <header-file src="src/ios/AssetsLib.h" />
         <source-file src="src/ios/AssetsLib.m" />
         <framework src="AssetsLibrary.framework"/>
+        <framework src="CoreLocation.framework"/>
     </platform> 
 </plugin>
 
