@@ -7,7 +7,7 @@
     <description>Cordova plugin for accessing assets from iOS ALAssetsLibrary</description>
     <license>MIT</license>
     <author>glowmar</author>
-    <keywords>cordova,phonegap,assets,assetslib,ALAssetsLibrary</keywords>
+    <keywords>cordova,phonegap,assets,assetslib,ALAssetsLibrary,thumbnails</keywords>
 
     <js-module src="www/assetslib.js" name="AssetsLib">
         <clobbers target="window.navigator.assetslib" />
