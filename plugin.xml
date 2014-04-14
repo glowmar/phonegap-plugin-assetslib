@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
 		id="com.flexblast.cordova.plugin.assetslib"
-    	version="0.1.1">
+    	version="0.2.0">
     <name>AssetsLib</name>
     <description>Cordova plugin for accessing assets from iOS ALAssetsLibrary</description>
     <license>MIT</license>
