@@ -38,8 +38,8 @@ navigator.assetslib.getAllPhotoThumbnails(successCallback, errorCallback)
 getFullScreenPhotos
 ```javascript
 ///
-// Gets device specific full screen photo for a given list of image urls
-// @param   urlList           Array of string urls, for example: [thumb[0].url]  or  [thumb[0].url,thumb[1].url]
+// Gets device specific full screen photos for a given list of image urls
+// @param   urlList           Array of string urls, for example: [thumbs[0].url]  or  [thumbs[0].url,thumbs[1].url]
 // @param   successCallback   callback function which will get the array with json objects of following format:
 //                            {
 //                              "url": url,
