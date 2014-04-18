@@ -29,8 +29,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // getAllPhotoThumbnails
 
-- (void)getAllPhotoThumbnails:(CDVInvokedUrlCommand*)command
+- (void)getAllPhotoMetadata:(CDVInvokedUrlCommand*)command
 {
+    NSLog(@"getAllPhotoMetadata");
     if (self.assetsLibrary == nil) {
         _assetsLibrary = [[ALAssetsLibrary alloc] init];
     }
@@ -52,7 +53,7 @@
             if ([self.assets count] == self.assetsCount)
             {
                 NSLog(@"Got all %d photos",self.assetsCount);
-                [self getAllPhotosComplete:command with:nil];
+                [self getAllPhotoMetadataComplete:command with:nil];
             }
         }
     };
@@ -71,7 +72,7 @@
                 break;
         }
         NSLog(@"Problem reading assets library %@",errorMessage);
-        [self getAllPhotosComplete:command with:errorMessage];
+        [self getAllPhotoMetadataComplete:command with:errorMessage];
     };
     
     ALAssetsLibraryGroupsEnumerationResultsBlock listGroupBlock = ^(ALAssetsGroup *group, BOOL *stop) {
@@ -101,7 +102,7 @@
     [self.assetsLibrary enumerateGroupsWithTypes:groupTypes usingBlock:listGroupBlock failureBlock:failureBlock];
 }
 
-- (void)getAllPhotosComplete:(CDVInvokedUrlCommand*)command with:(NSString*)error
+- (void)getAllPhotoMetadataComplete:(CDVInvokedUrlCommand*)command with:(NSString*)error
 {
     CDVPluginResult* pluginResult = nil;
      
@@ -121,17 +122,10 @@
             ALAsset* asset = self.assets[i];
             NSString* url = [[asset valueForProperty:ALAssetPropertyAssetURL] absoluteString];
             NSString* date = [dateFormatter stringFromDate:[asset valueForProperty:ALAssetPropertyDate]];
-            
-            CGImageRef thumbnailImageRef = [asset thumbnail];
-            UIImage* thumbnail = [UIImage imageWithCGImage:thumbnailImageRef];
-            NSString* base64encoded = [UIImagePNGRepresentation(thumbnail) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-            
             NSDictionary* photo = @{
                                     @"url": url,
-                                    @"date": date,
-                                    @"base64encoded": base64encoded
+                                    @"date": date
                                   };
-            //NSLog(@"%d: %@", i, photo[@"url"]);
             NSMutableDictionary* photometa = [self getImageMeta:asset];
             [photometa addEntriesFromDictionary:photo];
             [photos setObject:photometa forKey:photometa[@"url"]];
@@ -146,59 +140,38 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// getThumbnails
+
+- (void)getThumbnails:(CDVInvokedUrlCommand*)command
+{
+    NSLog(@"getThumbnails");
+
+    ALAssetsLibraryProcessBlock processThumbnailsBlock = ^(ALAsset *asset) {
+        CGImageRef thumbnailImageRef = [asset thumbnail];
+        UIImage* thumbnail = [UIImage imageWithCGImage:thumbnailImageRef];
+        NSString* base64encoded = [UIImagePNGRepresentation(thumbnail) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+        return base64encoded;
+    };
+    
+    [self getPhotos:command processBlock:processThumbnailsBlock];
+ }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // getFullScreenPhotos
 
 - (void)getFullScreenPhotos:(CDVInvokedUrlCommand*)command
 {
     NSLog(@"getFullScreenPhotos");
     
-    NSArray* urlList = [command.arguments objectAtIndex:0];
-    if (urlList != nil && [urlList count] > 0)
-    {
-        if (self.assetsLibrary == nil) {
-            _assetsLibrary = [[ALAssetsLibrary alloc] init];
-        }
-        
-        NSMutableDictionary* photos = [NSMutableDictionary dictionaryWithDictionary:@{}];
-        
-        for (int i=0; i<[urlList count]; i++)
-        {
-            NSString* urlString = [urlList objectAtIndex:i];
-            NSURL *url = [NSURL URLWithString:[urlString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-            NSLog(@"Asset url: %@", url);
-            [self.assetsLibrary assetForURL:url resultBlock: ^(ALAsset *asset){
-                ALAssetRepresentation* representation = [asset defaultRepresentation];
-                CGImageRef imageRef = [representation fullScreenImage];
-                UIImage* img = [UIImage imageWithCGImage:imageRef];
-                NSString* base64encoded = [UIImagePNGRepresentation(img) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-                NSDictionary* photo = @{
-                                        @"url": urlString,
-                                        @"base64encoded": base64encoded
-                                        };
-                NSLog(@"Done %d: %@", i, photo[@"url"]);
-                [photos setObject:photo forKey:photo[@"url"]];
-                if ([urlList count] == [photos count])
-                {
-                    NSArray* photoMsg = [photos allValues];
-                    NSLog(@"Sending to phonegap application message with %lu full screnn photos",(unsigned long)[photoMsg count]);
-
-                    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:photoMsg];
-                    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-                }
-            }
-            failureBlock: ^(NSError *error)
-            {
-                NSLog(@"Failed to read full screen image(s)");
-                [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
-            }];
-        }
-    }
-    else
-    {
-        NSLog(@"Missing parameter urlList");
-        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
-    }
+    ALAssetsLibraryProcessBlock processFullScreenPhotoBlock = ^(ALAsset *asset) {
+        ALAssetRepresentation* representation = [asset defaultRepresentation];
+        CGImageRef imageRef = [representation fullScreenImage];
+        UIImage* img = [UIImage imageWithCGImage:imageRef];
+        NSString* base64encoded = [UIImagePNGRepresentation(img) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+        return base64encoded;
+    };
     
+    [self getPhotos:command processBlock:processFullScreenPhotoBlock];
 }
 
 
@@ -250,5 +223,58 @@
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Common method which gets assets for one or more url's and processes them given processBlock
+
+// This block is executed for each asset
+typedef NSString* (^ALAssetsLibraryProcessBlock)(ALAsset *asset);
+
+- (void)getPhotos:(CDVInvokedUrlCommand*)command processBlock:(ALAssetsLibraryProcessBlock)process
+{
+    NSArray* urlList = [command.arguments objectAtIndex:0];
+    if (urlList != nil && [urlList count] > 0)
+    {
+        if (self.assetsLibrary == nil) {
+            _assetsLibrary = [[ALAssetsLibrary alloc] init];
+        }
+        
+        NSMutableDictionary* photos = [NSMutableDictionary dictionaryWithDictionary:@{}];
+        
+        for (int i=0; i<[urlList count]; i++)
+        {
+            NSString* urlString = [urlList objectAtIndex:i];
+            NSURL *url = [NSURL URLWithString:[urlString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+            NSLog(@"Asset url: %@", url);
+            [self.assetsLibrary assetForURL:url
+                                resultBlock: ^(ALAsset *asset){
+                                    NSString* base64encoded = process(asset);
+                                    NSDictionary* photo = @{
+                                                            @"url": urlString,
+                                                            @"base64encoded": base64encoded
+                                                            };
+                                    NSLog(@"Done %d: %@", i, photo[@"url"]);
+                                    [photos setObject:photo forKey:photo[@"url"]];
+                                    if ([urlList count] == [photos count])
+                                    {
+                                        NSArray* photoMsg = [photos allValues];
+                                        NSLog(@"Sending to phonegap application message with %lu base64encoded strings",(unsigned long)[photoMsg count]);
+                                        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:photoMsg];
+                                        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+                                    }
+                                }
+                                failureBlock: ^(NSError *error)
+                                {
+                                    NSLog(@"Failed to process asset(s)");
+                                    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
+                                }
+             ];
+        }
+    }
+    else
+    {
+        NSLog(@"Missing parameter urlList");
+        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
+    }
+}
 
 @end
