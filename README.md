@@ -84,15 +84,15 @@ To get an iOS photo library meta data use getAllPhotoMetadata:
 ```javascript
 getAllPhotos:function() {
   if (navigator.assetslib) {
-    navigator.assetslib.getAllPhotos(this.onGetAllPhotoMetadataSuccess, this.onGetAllPhotoMetadataError);
+    navigator.assetslib.getAllPhotos(this.onGetAllPhotosSuccess, this.onGetAllPhotosError);
   }
 },
-onGetAllPhotoMetadataSuccess:function(data){
+onGetAllPhotosSuccess:function(data){
   this.photometa = data;
-  alert("iOS onGetAllPhotoMetadataSuccess\n" + data.length);
+  alert("iOS onGetAllPhotosSuccess\n" + data.length);
 },
-onGetAllPhotoMetadataError:function(error){
-  console.error("iOS onGetAllPhotoMetadataError > " + error);
+onGetAllPhotosError:function(error){
+  console.error("iOS onGetAllPhotosError > " + error);
 }
 ```
 
