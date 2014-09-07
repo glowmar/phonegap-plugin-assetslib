@@ -274,7 +274,7 @@ typedef NSDictionary* (^ALAssetsLibraryProcessBlock)(ALAsset *asset);
         {
             NSString* urlString = [urlList objectAtIndex:i];
             NSURL *url = [NSURL URLWithString:[urlString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-            NSLog(@"Asset url: %@", url);
+            //NSLog(@"Asset url: %@", url);
             [self.assetsLibrary assetForURL:url
                                 resultBlock: ^(ALAsset *asset){
                                     NSDictionary* photo = process(asset);
