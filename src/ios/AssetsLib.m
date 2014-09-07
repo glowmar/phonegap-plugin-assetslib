@@ -283,7 +283,7 @@ typedef NSDictionary* (^ALAssetsLibraryProcessBlock)(ALAsset *asset);
                                     if ([urlList count] == [photos count])
                                     {
                                         NSArray* photoMsg = [photos allValues];
-                                        NSLog(@"Sending to phonegap application message with %lu base64encoded strings",(unsigned long)[photoMsg count]);
+                                        NSLog(@"Sending to phonegap application message with %lu photos",(unsigned long)[photoMsg count]);
                                         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:photoMsg];
                                         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
                                     }
