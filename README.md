@@ -14,10 +14,23 @@ On the javascript side, the assetslib class is going to be avaiable in global sc
 
 ## API
 
-getAllPhotoMetadata
+getAllPhotos
 ```javascript
 ///
-// Gets all available photos matadata on a device
+// Gets all available photos urls on a device
+// @param   successCallback   callback function which will get the array with json objects of following format:
+//                            {
+//                              "url": url
+//                            }
+// @param   errorCallback   callback function which will get the error
+navigator.assetslib.getAllPhotos(successCallback, errorCallback)
+```
+
+getPhotoMetadata
+```javascript
+///
+// Gets photos matadata 
+// @param   urlList           Array of photos string urls, for example: [photometa[0].url]  or  [photometa[0].url,photometa[1].url]
 // @param   successCallback   callback function which will get the array with json objects of following format:
 //                            {
 //                              "url": url,
@@ -31,7 +44,7 @@ getAllPhotoMetadata
 //                              "iptc_Keywords": <value which is array of string if present in image metadata>
 //                            }
 // @param   errorCallback   callback function which will get the error
-navigator.assetslib.getAllPhotoThumbnails(successCallback, errorCallback)
+navigator.assetslib.getPhotoMetadata(urlList, successCallback, errorCallback)
 ```
 
 getThumbnails
@@ -69,9 +82,9 @@ navigator.assetslib.getFullScreenPhotos(urlList, successCallback, errorCallback)
 To get an iOS photo library meta data use getAllPhotoMetadata:
 
 ```javascript
-getAllPhotoMetadata:function() {
+getAllPhotos:function() {
   if (navigator.assetslib) {
-    navigator.assetslib.getAllPhotoMetadata(this.onGetAllPhotoMetadataSuccess, this.onGetAllPhotoMetadataError);
+    navigator.assetslib.getAllPhotos(this.onGetAllPhotoMetadataSuccess, this.onGetAllPhotoMetadataError);
   }
 },
 onGetAllPhotoMetadataSuccess:function(data){
@@ -83,6 +96,22 @@ onGetAllPhotoMetadataError:function(error){
 }
 ```
 
+To get one or more metadata for a list of asset url's:
+
+```javascript
+getPhotoMetadata:function(urlList, successCallback, errorCallback){
+  if (navigator.assetslib) {
+    navigator.assetslib.getPhotoMetadata(urlList, this.onGetPhotoMetadataSuccess, this.onGetPhotoMetadataError);
+  }
+},
+onGetPhotoMetadataSuccess:function(data){
+  this.thumbnails = data;
+  alert("iOS onGetPhotoMetadataSuccess\n" + data.length);
+},
+onGetPhotoMetadataError:function(error){
+  console.error("iOS onGetPhotoMetadataError > " + error);
+}
+```
 
 To get one or more thumbnails for a list of asset url's:
 

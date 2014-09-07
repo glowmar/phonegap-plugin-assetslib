@@ -18,6 +18,7 @@
 @property (nonatomic, strong) ALAssetsLibrary *assetsLibrary;
 @property (nonatomic, strong) NSMutableArray *groups;
 @property (nonatomic, strong) NSMutableArray *assets;
+@property (nonatomic, strong) NSDateFormatter *dateFormatter;
 @property int assetsCount;
 
 @end
@@ -29,9 +30,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // getAllPhotoThumbnails
 
-- (void)getAllPhotoMetadata:(CDVInvokedUrlCommand*)command
+- (void)getAllPhotos:(CDVInvokedUrlCommand*)command
 {
-    NSLog(@"getAllPhotoMetadata");
+    NSLog(@"getAllPhotos");
     if (self.assetsLibrary == nil) {
         _assetsLibrary = [[ALAssetsLibrary alloc] init];
     }
@@ -53,7 +54,7 @@
             if ([self.assets count] == self.assetsCount)
             {
                 NSLog(@"Got all %d photos",self.assetsCount);
-                [self getAllPhotoMetadataComplete:command with:nil];
+                [self getAllPhotosComplete:command with:nil];
             }
         }
     };
@@ -72,7 +73,7 @@
                 break;
         }
         NSLog(@"Problem reading assets library %@",errorMessage);
-        [self getAllPhotoMetadataComplete:command with:errorMessage];
+        [self getAllPhotosComplete:command with:errorMessage];
     };
     
     ALAssetsLibraryGroupsEnumerationResultsBlock listGroupBlock = ^(ALAssetsGroup *group, BOOL *stop) {
@@ -102,10 +103,10 @@
     [self.assetsLibrary enumerateGroupsWithTypes:groupTypes usingBlock:listGroupBlock failureBlock:failureBlock];
 }
 
-- (void)getAllPhotoMetadataComplete:(CDVInvokedUrlCommand*)command with:(NSString*)error
+- (void)getAllPhotosComplete:(CDVInvokedUrlCommand*)command with:(NSString*)error
 {
     CDVPluginResult* pluginResult = nil;
-     
+    
     if (error != nil && [error length] > 0)
     {   // Call error
         NSLog(@"Error occured for command.callbackId:%@, error:%@", command.callbackId, error);
@@ -114,21 +115,14 @@
     else
     {   // Call was successful
         NSMutableDictionary* photos = [NSMutableDictionary dictionaryWithDictionary:@{}];
-        NSDateFormatter* dateFormatter = [[NSDateFormatter alloc] init];
-        dateFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ssZ";
-        
         for (int i=0; i<[self.assets count]; i++)
         {
             ALAsset* asset = self.assets[i];
             NSString* url = [[asset valueForProperty:ALAssetPropertyAssetURL] absoluteString];
-            NSString* date = [dateFormatter stringFromDate:[asset valueForProperty:ALAssetPropertyDate]];
             NSDictionary* photo = @{
-                                    @"url": url,
-                                    @"date": date
-                                  };
-            NSMutableDictionary* photometa = [self getImageMeta:asset];
-            [photometa addEntriesFromDictionary:photo];
-            [photos setObject:photometa forKey:photometa[@"url"]];
+                                    @"url": url
+                                   };
+            [photos setObject:photo forKey:photo[@"url"]];
         }
         NSArray* photoMsg = [photos allValues];
         NSLog(@"Sending to phonegap application message with %lu photos",(unsigned long)[photoMsg count]);
@@ -142,19 +136,50 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // getThumbnails
 
+- (void)getPhotoMetadata:(CDVInvokedUrlCommand*)command
+{
+    NSLog(@"getPhotoMetadata");
+    
+    ALAssetsLibraryProcessBlock processMetadataBlock = ^(ALAsset *asset) {
+        if (self.dateFormatter == nil) {
+            _dateFormatter = [[NSDateFormatter alloc] init];
+            _dateFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ssZ";
+        }
+        NSString* url = [[asset valueForProperty:ALAssetPropertyAssetURL] absoluteString];
+        NSString* date = [self.dateFormatter stringFromDate:[asset valueForProperty:ALAssetPropertyDate]];
+        NSDictionary* photo = @{
+                                @"url": url,
+                                @"date": date
+                               };
+        NSMutableDictionary* photometa = [self getImageMeta:asset];
+        [photometa addEntriesFromDictionary:photo];
+        return photometa;
+    };
+    
+    [self getPhotos:command processBlock:processMetadataBlock];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// getThumbnails
+
 - (void)getThumbnails:(CDVInvokedUrlCommand*)command
 {
     NSLog(@"getThumbnails");
-
+    
     ALAssetsLibraryProcessBlock processThumbnailsBlock = ^(ALAsset *asset) {
+        NSString* url = [[asset valueForProperty:ALAssetPropertyAssetURL] absoluteString];
         CGImageRef thumbnailImageRef = [asset thumbnail];
         UIImage* thumbnail = [UIImage imageWithCGImage:thumbnailImageRef];
         NSString* base64encoded = [UIImagePNGRepresentation(thumbnail) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-        return base64encoded;
+        NSDictionary* photo = @{
+                                @"url": url,
+                                @"base64encoded": base64encoded
+                               };
+        return photo;
     };
     
     [self getPhotos:command processBlock:processThumbnailsBlock];
- }
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // getFullScreenPhotos
@@ -164,11 +189,16 @@
     NSLog(@"getFullScreenPhotos");
     
     ALAssetsLibraryProcessBlock processFullScreenPhotoBlock = ^(ALAsset *asset) {
+        NSString* url = [[asset valueForProperty:ALAssetPropertyAssetURL] absoluteString];
         ALAssetRepresentation* representation = [asset defaultRepresentation];
         CGImageRef imageRef = [representation fullScreenImage];
         UIImage* img = [UIImage imageWithCGImage:imageRef];
         NSString* base64encoded = [UIImagePNGRepresentation(img) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-        return base64encoded;
+        NSDictionary* photo = @{
+                                @"url": url,
+                                @"base64encoded": base64encoded
+                               };
+        return photo;
     };
     
     [self getPhotos:command processBlock:processFullScreenPhotoBlock];
@@ -184,7 +214,7 @@
     
     NSMutableDictionary* dict = [[NSMutableDictionary alloc] init];
     [dict setValue:[representation filename] forKey:@"filename"];
-
+    
     //@"{GPS}"
     NSDictionary* gps = [metadata objectForKey:@"{GPS}"];
     if (gps != nil){
@@ -227,7 +257,7 @@
 // Common method which gets assets for one or more url's and processes them given processBlock
 
 // This block is executed for each asset
-typedef NSString* (^ALAssetsLibraryProcessBlock)(ALAsset *asset);
+typedef NSDictionary* (^ALAssetsLibraryProcessBlock)(ALAsset *asset);
 
 - (void)getPhotos:(CDVInvokedUrlCommand*)command processBlock:(ALAssetsLibraryProcessBlock)process
 {
@@ -247,11 +277,7 @@ typedef NSString* (^ALAssetsLibraryProcessBlock)(ALAsset *asset);
             NSLog(@"Asset url: %@", url);
             [self.assetsLibrary assetForURL:url
                                 resultBlock: ^(ALAsset *asset){
-                                    NSString* base64encoded = process(asset);
-                                    NSDictionary* photo = @{
-                                                            @"url": urlString,
-                                                            @"base64encoded": base64encoded
-                                                            };
+                                    NSDictionary* photo = process(asset);
                                     NSLog(@"Done %d: %@", i, photo[@"url"]);
                                     [photos setObject:photo forKey:photo[@"url"]];
                                     if ([urlList count] == [photos count])
@@ -262,11 +288,11 @@ typedef NSString* (^ALAssetsLibraryProcessBlock)(ALAsset *asset);
                                         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
                                     }
                                 }
-                                failureBlock: ^(NSError *error)
-                                {
-                                    NSLog(@"Failed to process asset(s)");
-                                    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
-                                }
+                               failureBlock: ^(NSError *error)
+             {
+                 NSLog(@"Failed to process asset(s)");
+                 [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
+             }
              ];
         }
     }
