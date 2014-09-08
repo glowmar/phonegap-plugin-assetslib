@@ -50,6 +50,7 @@ getPhotoMetadata
 navigator.assetslib.getPhotoMetadata(urlList, successCallback, errorCallback)
 ```
 
+
 ## Examples
 *All examples assume you have successfully added phonegap-plugin-assetslib to your project*
 
