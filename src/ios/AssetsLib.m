@@ -147,6 +147,7 @@
         }
         NSString* url = [[asset valueForProperty:ALAssetPropertyAssetURL] absoluteString];
         NSString* date = [self.dateFormatter stringFromDate:[asset valueForProperty:ALAssetPropertyDate]];
+        
         NSDictionary* photo = @{
                                 @"url": url,
                                 @"date": date
@@ -160,63 +161,17 @@
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// getThumbnails
-
-- (void)getThumbnails:(CDVInvokedUrlCommand*)command
-{
-    NSLog(@"getThumbnails");
-    
-    ALAssetsLibraryProcessBlock processThumbnailsBlock = ^(ALAsset *asset) {
-        NSString* url = [[asset valueForProperty:ALAssetPropertyAssetURL] absoluteString];
-        CGImageRef thumbnailImageRef = [asset thumbnail];
-        UIImage* thumbnail = [UIImage imageWithCGImage:thumbnailImageRef];
-        NSString* base64encoded = [UIImagePNGRepresentation(thumbnail) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-        NSDictionary* photo = @{
-                                @"url": url,
-                                @"base64encoded": base64encoded
-                               };
-        return photo;
-    };
-
-    [self.commandDelegate runInBackground:^{
-        [self getPhotos:command processBlock:processThumbnailsBlock];
-    }];
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// getFullScreenPhotos
-- (void)getFullScreenPhotos:(CDVInvokedUrlCommand*)command
-{
-    NSLog(@"getFullScreenPhotos");
-    
-    ALAssetsLibraryProcessBlock processFullScreenPhotoBlock = ^(ALAsset *asset) {
-        NSString* url = [[asset valueForProperty:ALAssetPropertyAssetURL] absoluteString];
-        ALAssetRepresentation* representation = [asset defaultRepresentation];
-        CGImageRef imageRef = [representation fullScreenImage];
-        UIImage* img = [UIImage imageWithCGImage:imageRef];
-        NSString* base64encoded = [UIImagePNGRepresentation(img) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-        NSDictionary* photo = @{
-                                @"url": url,
-                                @"base64encoded": base64encoded
-                               };
-        return photo;
-    };
-    
-    [self.commandDelegate runInBackground:^{
-        [self getPhotos:command processBlock:processFullScreenPhotoBlock];
-    }];
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Gets asset representation meta data
 - (NSMutableDictionary* ) getImageMeta:(ALAsset*)asset
 {
     ALAssetRepresentation* representation = [asset defaultRepresentation];
+    struct CGSize size = [representation dimensions];
     NSDictionary* metadata = [representation metadata];
     
     NSMutableDictionary* dict = [[NSMutableDictionary alloc] init];
     [dict setValue:[representation filename] forKey:@"filename"];
+    [dict setValue:@(size.width) forKey:@"width"];
+    [dict setValue:@(size.height) forKey:@"hight"];
     
     //@"{GPS}"
     NSDictionary* gps = [metadata objectForKey:@"{GPS}"];

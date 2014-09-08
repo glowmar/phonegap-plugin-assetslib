@@ -35,6 +35,9 @@ getPhotoMetadata
 //                            {
 //                              "url": url,
 //                              "date": date,
+//                              "width": <width>,
+//                              "height": <height>,
+//                              "filename": <file name>,
 //                              "gps_Latitude": <value if present in image metadata>,
 //                              "gps_Longitude": <value if present in image metadata>,
 //                              "gps_LatitudeRef": <value if present in image metadata>,
@@ -45,34 +48,6 @@ getPhotoMetadata
 //                            }
 // @param   errorCallback   callback function which will get the error
 navigator.assetslib.getPhotoMetadata(urlList, successCallback, errorCallback)
-```
-
-getThumbnails
-```javascript
-///
-// Gets base64encoded thumbnails data for a given list of photo urls
-// @param   urlList           Array of string urls, for example: [photometa[0].url]  or  [photometa[0].url,photometa[1].url]
-// @param   successCallback   callback function which will get the array with json objects of following format:
-//                            {
-//                              "url": url,
-//                              "base64encoded": base64encoded
-//                            }
-// @param   errorCallback   callback function which will get the error
-navigator.assetslib.getThumbnails(urlList, successCallback, errorCallback)
-```
-
-getFullScreenPhotos
-```javascript
-///
-// Gets device specific base64encoded full screen photo data for a given list of image urls
-// @param   urlList           Array of string urls, for example: [photometa[0].url]  or  [photometa[0].url,photometa[1].url]
-// @param   successCallback   callback function which will get the array with json objects of following format:
-//                            {
-//                              "url": url,
-//                              "base64encoded": base64encoded
-//                            }
-// @param   errorCallback   callback function which will get the error
-navigator.assetslib.getFullScreenPhotos(urlList, successCallback, errorCallback)
 ```
 
 ## Examples
@@ -110,40 +85,5 @@ onGetPhotoMetadataSuccess:function(data){
 },
 onGetPhotoMetadataError:function(error){
   console.error("iOS onGetPhotoMetadataError > " + error);
-}
-```
-
-To get one or more thumbnails for a list of asset url's:
-
-```javascript
-getThumbnails:function(urlList, successCallback, errorCallback){
-  if (navigator.assetslib) {
-    navigator.assetslib.getThumbnails(urlList, this.onGetThumbnailsSuccess, this.onGetThumbnailsError);
-  }
-},
-onGetThumbnailsSuccess:function(data){
-  this.thumbnails = data;
-  alert("iOS onGetThumbnailsSuccess\n" + data.length);
-},
-onGetThumbnailsError:function(error){
-  console.error("iOS onGetThumbnailsError > " + error);
-}
-```
-
-
-To get device full screen size pictures for a list of url's:
-
-```javascript
-getFullScreenPhotos:function(urlList, successCallback, errorCallback){
-  if (navigator.assetslib) {
-    navigator.assetslib.getFullScreenPhotos(urlList, this.onGetFullScreenPhotosSuccess, this.onGetFullScreenPhotosError);
-  }
-},
-onGetFullScreenPhotosSuccess:function(data){
-  this.fullScreenPhotos = data;
-  alert("iOS onGetFullScreenPhotosSuccess\n" + data.length);
-},
-onGetFullScreenPhotosError:function(error){
-  console.error("iOS onGetFullScreenPhotosError > " + error);
 }
 ```
