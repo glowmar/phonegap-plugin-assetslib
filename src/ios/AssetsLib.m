@@ -171,7 +171,7 @@
     NSMutableDictionary* dict = [[NSMutableDictionary alloc] init];
     [dict setValue:[representation filename] forKey:@"filename"];
     [dict setValue:@(size.width) forKey:@"width"];
-    [dict setValue:@(size.height) forKey:@"hight"];
+    [dict setValue:@(size.height) forKey:@"height"];
     
     //@"{GPS}"
     NSDictionary* gps = [metadata objectForKey:@"{GPS}"];
