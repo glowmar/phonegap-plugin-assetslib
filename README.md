@@ -35,6 +35,8 @@ getPhotoMetadata
 //                            {
 //                              "url": url,
 //                              "date": date,
+//                              "width": <width>,
+//                              "height": <height>,
 //                              "gps_Latitude": <value if present in image metadata>,
 //                              "gps_Longitude": <value if present in image metadata>,
 //                              "gps_LatitudeRef": <value if present in image metadata>,
@@ -55,6 +57,8 @@ getThumbnails
 // @param   successCallback   callback function which will get the array with json objects of following format:
 //                            {
 //                              "url": url,
+//                              "width": <width>,
+//                              "height": <height>,
 //                              "base64encoded": base64encoded
 //                            }
 // @param   errorCallback   callback function which will get the error
@@ -69,6 +73,8 @@ getFullScreenPhotos
 // @param   successCallback   callback function which will get the array with json objects of following format:
 //                            {
 //                              "url": url,
+//                              "width": <width>,
+//                              "height": <height>,
 //                              "base64encoded": base64encoded
 //                            }
 // @param   errorCallback   callback function which will get the error
