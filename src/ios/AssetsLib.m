@@ -177,13 +177,14 @@
                                };
         return photo;
     };
-    
-    [self getPhotos:command processBlock:processThumbnailsBlock];
+
+    [self.commandDelegate runInBackground:^{
+        [self getPhotos:command processBlock:processThumbnailsBlock];
+    }];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // getFullScreenPhotos
-
 - (void)getFullScreenPhotos:(CDVInvokedUrlCommand*)command
 {
     NSLog(@"getFullScreenPhotos");
@@ -201,7 +202,9 @@
         return photo;
     };
     
-    [self getPhotos:command processBlock:processFullScreenPhotoBlock];
+    [self.commandDelegate runInBackground:^{
+        [self getPhotos:command processBlock:processFullScreenPhotoBlock];
+    }];
 }
 
 
