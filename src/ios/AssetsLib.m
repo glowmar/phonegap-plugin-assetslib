@@ -134,7 +134,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// getThumbnails
+// getPhotoMetadata
 
 - (void)getPhotoMetadata:(CDVInvokedUrlCommand*)command
 {
@@ -158,6 +158,30 @@
     };
     
     [self getPhotos:command processBlock:processMetadataBlock];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// getThumbnails
+
+- (void)getThumbnails:(CDVInvokedUrlCommand*)command
+{
+    NSLog(@"getThumbnails");
+    
+    ALAssetsLibraryProcessBlock processThumbnailsBlock = ^(ALAsset *asset) {
+        NSString* url = [[asset valueForProperty:ALAssetPropertyAssetURL] absoluteString];
+        CGImageRef thumbnailImageRef = [asset thumbnail];
+        UIImage* thumbnail = [UIImage imageWithCGImage:thumbnailImageRef];
+        NSString* base64encoded = [UIImagePNGRepresentation(thumbnail) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+        NSDictionary* photo = @{
+                                @"url": url,
+                                @"base64encoded": base64encoded
+                               };
+        return photo;
+    };
+
+    [self.commandDelegate runInBackground:^{
+        [self getPhotos:command processBlock:processThumbnailsBlock];
+    }];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

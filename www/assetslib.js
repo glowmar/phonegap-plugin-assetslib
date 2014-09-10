@@ -6,6 +6,10 @@ var assetslib = {
 	
 	getPhotoMetadata:function(urlList, successCallback, errorCallback) {
 		cordova.exec(successCallback, errorCallback, "AssetsLib", "getPhotoMetadata", [urlList]);
+	},
+
+	getThumbnails:function(urlList, successCallback, errorCallback) {
+		cordova.exec(successCallback, errorCallback, "AssetsLib", "getThumbnails", [urlList]);
 	}
 }	
 

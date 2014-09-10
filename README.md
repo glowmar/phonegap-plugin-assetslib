@@ -50,6 +50,21 @@ getPhotoMetadata
 navigator.assetslib.getPhotoMetadata(urlList, successCallback, errorCallback)
 ```
 
+getThumbnails
+```javascript
+///
+// Gets base64encoded thumbnails data for a given list of photo urls
+// @param   urlList           Array of string urls, for example: [photometa[0].url]  or  [photometa[0].url,photometa[1].url]
+// @param   successCallback   callback function which will get the array with json objects of following format:
+//                            {
+//                              "url": url,
+//                              "base64encoded": base64encoded
+//                            }
+// @param   errorCallback   callback function which will get the error
+navigator.assetslib.getThumbnails(urlList, successCallback, errorCallback)
+```
+
+
 
 ## Examples
 *All examples assume you have successfully added phonegap-plugin-assetslib to your project*
@@ -86,5 +101,22 @@ onGetPhotoMetadataSuccess:function(data){
 },
 onGetPhotoMetadataError:function(error){
   console.error("iOS onGetPhotoMetadataError > " + error);
+}
+```
+
+To get one or more thumbnails for a list of asset url's:
+
+```javascript
+getThumbnails:function(urlList, successCallback, errorCallback){
+  if (navigator.assetslib) {
+    navigator.assetslib.getThumbnails(urlList, this.onGetThumbnailsSuccess, this.onGetThumbnailsError);
+  }
+},
+onGetThumbnailsSuccess:function(data){
+  this.thumbnails = data;
+  alert("iOS onGetThumbnailsSuccess\n" + data.length);
+},
+onGetThumbnailsError:function(error){
+  console.error("iOS onGetThumbnailsError > " + error);
 }
 ```
